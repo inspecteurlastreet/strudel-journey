@@ -1,2 +1,2 @@
 # strudel-journey
-my jurney using strudel and sometime hydra
+my journey using strudel and sometime hydra
