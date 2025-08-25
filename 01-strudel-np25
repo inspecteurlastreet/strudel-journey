@@ -1,3 +1,7 @@
+// samples are not provided for right reason but feel free to use you're own dans tweak "setCps" "chop" "fit" and "scrub" settings. 
+// do not hesitate to reach me for any question. 
+//done by reading the strudel documentation and by following switch angel tutorial on youtube
+
 const dbank = "tr909"
 
 var dbase = slider(0.516, 0)
