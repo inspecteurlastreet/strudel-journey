@@ -1,0 +1,95 @@
+const dbank = "tr909"
+
+var dbase = slider(0.516, 0)
+var dtime = slider(0.029,0)
+var dfb = slider(0, 0)
+var dsynch = slider(1, 0)
+
+var mlpf = slider(0, 0, 1)
+var kslide = slider(1, 0, 1)
+
+var breaklpf = slider(0,0,1)
+
+setCps(170/60/4)
+
+$: s("BREAKS-V2:6/2")
+  .fit()
+  .scrub(irand(16).div(16).seg(8))
+  .almostNever(ply("2 | 4 | 1"))
+  .hpf("5000".mul(slider(1, 0, 1))).hpq(10)
+  .room(.6).roomsize(.8)
+  .orbit(2)
+  .gain(".8".mul(slider(0, 0, 1)))
+  ._scope()
+
+$: s("BREAKS-V2:2")
+  .fit()
+  .chop(4).sometimesBy(.4, ply("2 | 4"))
+  .orbit(2)
+  .gain(.9)
+  .lpf(breaklpf.range(0, 20000)).lpq(10)
+  .delay(dbase).delaytime(dtime).delayfeedback(dfb).delaysync(dsynch)
+  .reset("<x@30 [x*[4 [8 [16 32]]]]@2>".late(2))
+  .scope()
+
+$: s("bd")
+  .struct("{1 <0 1> 0 0 0 0 0 0}%4")
+  .n(irand(5).ribbon(0,3))
+  .bank(dbank)
+  .lpf("200".mul(kslide)).lpq(10).lpenv(1)
+  .duckorbit(2).duckattack("<0.1 .5 0.3>").duckdepth(.55)
+  .gain(.9)
+  ._punchcard()
+
+$: note("<[b0 - b0 - - b0 - -]>")
+  .s("square")
+  .fm(10)
+  .add(note("0,.05")) // chorus
+  .lpf("200".mul(mlpf)).lpq(10).lpenv(2)
+  .decay("1")
+  .room(1).roomsize(1)
+  .gain(.4)
+  .orbit(2)
+  ._scope()
+
+$: note("<[b1 - b1 e1 - <b1 gb2> - -]>")
+  .s("sine").transpose("<0 .5>")
+  .fm(6)
+  .add(note("0,.05")) // chorus
+  .lpf("800".mul(mlpf)).lpq(10).lpenv(2)
+  .decay("1")
+  .room(1).roomsize(1)
+  .gain(.5)
+  .orbit(2)
+  ._scope()
+
+$: note("<[b2, a3, gb3]>".transpose("<0 .5 0 1>")).s("sawtooth")
+  .fm("<4 4 3 6>").fmh(1.5)
+  .lpf("<800 200 500 700>".mul(mlpf)).lpdecay(.5).lpsustain(.05).lprelease(.2).lpenv(5)
+  .gain(.7)
+  .orbit(2)
+  ._punchcard()
+
+
+//hydra part
+  
+await initHydra()
+// licensed with CC BY-NC-SA 4.0 https://creativecommons.org/licenses/by-nc-sa/4.0/
+// by Zach Krall
+// http://zachkrall.online/
+
+
+let pattern2 = "{1 <0 1> 0 0 0 0 0 0}%4".mul(kslide).add(mlpf)
+osc(10,0,1).diff(osc(50,0.08).rotate(Math.PI/2)).hue(.5)
+  .layer(
+    osc(10,.2,1)
+      .mult(shape(1,0.5,0.001))
+      .pixelate(25)
+      .scale(H(pattern2),1.5,2)
+      .repeat(30,30)
+      .kaleid(H("<[4 4 6 6 6 10 10 10]>"))
+  )
+  .mult(osc(20, 0.03).thresh(0.4).rotate(0, -0.02))
+  .modulateRotate(osc(20, .01).thresh(0.1, 0.6), () => 0.1 + mouse.x * 0.0005)
+  .posterize(25,.3).modulatePixelate(o1,1,10).add(src(o0).modulate(o0,.8),.8)
+  .out(o0)
